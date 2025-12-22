@@ -10,6 +10,10 @@ def create_app():
     jwt.init_app(app)
 
 
+    from app.routes.auth_routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+
+
       with app.app_context():
           db.create_all()
 
