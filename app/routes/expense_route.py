@@ -30,3 +30,25 @@ def add_expense():
     db.session.commit()
 
     return jsonify({"message": "Expense added successfully"}), 201
+
+
+    @expense_bp.route("/expenses", methods=["GET"])
+    @jwt_required()
+    def get_expenses():
+        user_id = get_jwt_identity()
+        
+        expenses = Expense.query.filter_by(user_id=user_id).order_by(
+            Expense.expense_date.desc()
+        ).all()
+        
+        result = []
+        for expense in expenses:
+            result.append({
+                "id": expense.id,
+                "amount": float(expense.amount),
+                "description": expense.description,
+                "expense_date": expense.expense_date.strftime("%Y-%m-%d"),
+                "created_at": expense.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            return jsonify(result), 200
