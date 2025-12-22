@@ -20,6 +20,9 @@ def create_app():
 
     from app.routes.category_routes import category_bp
     app.register_blueprint(category_bp)
+
+    from app.routes.budget_routes import budget_bp
+    app.register_blueprint(budget_bp)
     
       with app.app_context():
           db.create_all()
