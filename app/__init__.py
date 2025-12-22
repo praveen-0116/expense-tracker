@@ -14,6 +14,9 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
+    from app.routes.expense_routes import expense_bp
+    app.register_blueprint(expense_bp)
+
       with app.app_context():
           db.create_all()
 
