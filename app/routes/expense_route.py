@@ -14,16 +14,18 @@ expense_bp = Blueprint("expense", __name__)
 def add_expense():
     data = request.get_json()
     user_id = get_jwt_identity()
-
+    
     amount = data.get("amount")
     description = data.get("description")
     expense_date = data.get("expense_date")
-
+    category_id = data.get("category_id")
+    
     if not amount or not expense_date:
         return jsonify({"message": "Amount and date are required"}), 400
 
     expense = Expense(
         user_id=user_id,
+        category_id=category_id,
         amount=amount,
         description=description,
         expense_date=datetime.strptime(expense_date, "%Y-%m-%d")
