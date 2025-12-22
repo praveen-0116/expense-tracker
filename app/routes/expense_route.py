@@ -4,10 +4,11 @@ from app.extensions import db
 from app.models.expense import Expense
 from datetime import datetime
 from sqlalchemy import func
-from sqlalchemy import func
 from app.models.category import Category
 
 expense_bp = Blueprint("expense", __name__)
+
+# ---------------- ADD EXPENSE ----------------
 
 @expense_bp.route("/expenses", methods=["POST"])
 @jwt_required()
@@ -36,27 +37,30 @@ def add_expense():
 
     return jsonify({"message": "Expense added successfully"}), 201
 
+# ---------------- GET EXPENSES ----------------
 
-    @expense_bp.route("/expenses", methods=["GET"])
-    @jwt_required()
-    def get_expenses():
-        user_id = get_jwt_identity()
+@expense_bp.route("/expenses", methods=["GET"])
+@jwt_required()
+def get_expenses():
+    user_id = get_jwt_identity()
+    
+    expenses = Expense.query.filter_by(user_id=user_id).order_by(
+        Expense.expense_date.desc()
+    ).all()
         
-        expenses = Expense.query.filter_by(user_id=user_id).order_by(
-            Expense.expense_date.desc()
-        ).all()
+    result = []
+    for expense in expenses:
+        result.append({
+            "id": expense.id,
+            "amount": float(expense.amount),
+            "description": expense.description,
+            "expense_date": expense.expense_date.strftime("%Y-%m-%d"),
+            "created_at": expense.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        })
         
-        result = []
-        for expense in expenses:
-            result.append({
-                "id": expense.id,
-                "amount": float(expense.amount),
-                "description": expense.description,
-                "expense_date": expense.expense_date.strftime("%Y-%m-%d"),
-                "created_at": expense.created_at.strftime("%Y-%m-%d %H:%M:%S")
-            })
-            
-            return jsonify(result), 200
+    return jsonify(result), 200
+
+# ---------------- UPDATE EXPENSE ----------------
 
 @expense_bp.route("/expenses/<int:expense_id>", methods=["PUT"])
 @jwt_required()
@@ -84,6 +88,8 @@ def update_expense(expense_id):
 
     return jsonify({"message": "Expense updated successfully"}), 200
 
+# ---------------- DELETE EXPENSE ----------------
+
 @expense_bp.route("/expenses/<int:expense_id>", methods=["DELETE"])
 @jwt_required()
 def delete_expense(expense_id):
@@ -102,6 +108,8 @@ def delete_expense(expense_id):
 
     return jsonify({"message": "Expense deleted successfully"}), 200
 
+# ---------------- MONTHLY SUMMARY ----------------
+
 @expense_bp.route("/expenses/summary/monthly", methods=["GET"])
 @jwt_required()
 def monthly_summary():
@@ -116,14 +124,14 @@ def monthly_summary():
         func.strftime('%Y-%m', Expense.expense_date)
     ).all()
 
-    summary = []
-    for month, total in result:
-        summary.append({
-            "month": month,
-            "total_spent": float(total)
-        })
+    summary = [
+        {"month": month, "total_spent": float(total)}
+        for month, total in result
+    ]
 
     return jsonify(summary), 200
+
+# ---------------- CATEGORY SUMMARY ----------------
 
 @expense_bp.route("/expenses/summary/category", methods=["GET"])
 @jwt_required()
@@ -142,9 +150,8 @@ def category_summary():
     ).all()
 
     summary = [
-        {"category": nae, "total_spent": float(total)}
+        {"category": name, "total_spent": float(total)}
         for name, total in result
     ]
-        })
 
     return jsonify(summary), 200
