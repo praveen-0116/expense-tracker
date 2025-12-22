@@ -141,11 +141,10 @@ def category_summary():
         Category.name
     ).all()
 
-    summary = []
-    for category, total in result:
-        summary.append({
-            "category": category,
-            "total_spent": float(total)
+    summary = [
+        {"category": nae, "total_spent": float(total)}
+        for name, total in result
+    ]
         })
 
     return jsonify(summary), 200
