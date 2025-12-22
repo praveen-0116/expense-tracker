@@ -4,6 +4,8 @@ from app.extensions import db
 from app.models.expense import Expense
 from datetime import datetime
 from sqlalchemy import func
+from sqlalchemy import func
+from app.models.category import Category
 
 expense_bp = Blueprint("expense", __name__)
 
@@ -116,6 +118,31 @@ def monthly_summary():
     for month, total in result:
         summary.append({
             "month": month,
+            "total_spent": float(total)
+        })
+
+    return jsonify(summary), 200
+
+@expense_bp.route("/expenses/summary/category", methods=["GET"])
+@jwt_required()
+def category_summary():
+    user_id = get_jwt_identity()
+
+    result = db.session.query(
+        Category.name,
+        func.sum(Expense.amount)
+    ).join(
+        Expense, Expense.category_id == Category.id
+    ).filter(
+        Expense.user_id == user_id
+    ).group_by(
+        Category.name
+    ).all()
+
+    summary = []
+    for category, total in result:
+        summary.append({
+            "category": category,
             "total_spent": float(total)
         })
 
