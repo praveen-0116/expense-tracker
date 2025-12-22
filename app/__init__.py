@@ -17,6 +17,10 @@ def create_app():
     from app.routes.expense_routes import expense_bp
     app.register_blueprint(expense_bp)
 
+
+    from app.routes.category_routes import category_bp
+    app.register_blueprint(category_bp)
+    
       with app.app_context():
           db.create_all()
 
