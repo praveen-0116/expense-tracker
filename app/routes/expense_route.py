@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models.expense import Expense
 from datetime import datetime
+from sqlalchemy import func
 
 expense_bp = Blueprint("expense", __name__)
 
@@ -96,3 +97,26 @@ def delete_expense(expense_id):
     db.session.commit()
 
     return jsonify({"message": "Expense deleted successfully"}), 200
+
+@expense_bp.route("/expenses/summary/monthly", methods=["GET"])
+@jwt_required()
+def monthly_summary():
+    user_id = get_jwt_identity()
+
+    result = db.session.query(
+        func.strftime('%Y-%m', Expense.expense_date),
+        func.sum(Expense.amount)
+    ).filter(
+        Expense.user_id == user_id
+    ).group_by(
+        func.strftime('%Y-%m', Expense.expense_date)
+    ).all()
+
+    summary = []
+    for month, total in result:
+        summary.append({
+            "month": month,
+            "total_spent": float(total)
+        })
+
+    return jsonify(summary), 200
