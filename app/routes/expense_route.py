@@ -13,23 +13,34 @@ expense_bp = Blueprint("expense", __name__)
 @expense_bp.route("/expenses", methods=["POST"])
 @jwt_required()
 def add_expense():
-    data = request.get_json()
     user_id = get_jwt_identity()
-    
-    amount = data.get("amount")
-    description = data.get("description")
-    expense_date = data.get("expense_date")
-    category_id = data.get("category_id")
-    
-    if not amount or not expense_date:
-        return jsonify({"message": "Amount and date are required"}), 400
+    data = request.get_json()
+
+    try:
+        amount = float(data.get("amount"))
+        expense_date = data.get("expense_date")
+        description = data.get("description")
+        category_id = data.get("category_id")
+    except (TypeError, ValueError):
+        return jsonify({"message": "Invalid input format"}), 400
+
+    if amount <= 0:
+        return jsonify({"message": "Amount must be greater than zero"}), 400
+
+    if not expense_date:
+        return jsonify({"message": "Expense date is required"}), 400
+
+    try:
+        expense_date = datetime.strptime(expense_date, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"message": "Date format must be YYYY-MM-DD"}), 400
 
     expense = Expense(
         user_id=user_id,
         category_id=category_id,
         amount=amount,
         description=description,
-        expense_date=datetime.strptime(expense_date, "%Y-%m-%d")
+        expense_date=expense_date
     )
 
     db.session.add(expense)
