@@ -54,13 +54,18 @@ def add_expense():
 @jwt_required()
 def get_expenses():
     user_id = get_jwt_identity()
-    
-    expenses = Expense.query.filter_by(user_id=user_id).order_by(
+
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+
+    expenses = Expense.query.filter_by(
+        user_id=user_id
+    ).order_by(
         Expense.expense_date.desc()
-    ).all()
-        
+    ).paginate(page=page, per_page=limit, error_out=False)
+
     result = []
-    for expense in expenses:
+    for expense in expenses.items:
         result.append({
             "id": expense.id,
             "amount": float(expense.amount),
@@ -68,8 +73,14 @@ def get_expenses():
             "expense_date": expense.expense_date.strftime("%Y-%m-%d"),
             "created_at": expense.created_at.strftime("%Y-%m-%d %H:%M:%S")
         })
-        
-    return jsonify(result), 200
+
+    return jsonify({
+        "page": page,
+        "limit": limit,
+        "total_pages": expenses.pages,
+        "total_items": expenses.total,
+        "data": result
+    }), 200
 
 # ---------------- UPDATE EXPENSE ----------------
 
