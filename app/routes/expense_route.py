@@ -46,7 +46,10 @@ def add_expense():
     db.session.add(expense)
     db.session.commit()
 
-    return jsonify({"message": "Expense added successfully"}), 201
+return jsonify({
+    "success": True,
+    "data": {"message": "Expense added successfully"}
+}), 201
 
 # ---------------- GET EXPENSES ----------------
 
@@ -74,13 +77,16 @@ def get_expenses():
             "created_at": expense.created_at.strftime("%Y-%m-%d %H:%M:%S")
         })
 
-    return jsonify({
+   return jsonify({
+    "success": True,
+    "data": {
         "page": page,
         "limit": limit,
         "total_pages": expenses.pages,
         "total_items": expenses.total,
-        "data": result
-    }), 200
+        "expenses": result
+    }
+}), 200
 
 # ---------------- UPDATE EXPENSE ----------------
 
