@@ -5,6 +5,7 @@ from app.models.expense import Expense
 from datetime import datetime
 from sqlalchemy import func
 from app.models.category import Category
+from app.utils.response import success_response, error_response
 
 expense_bp = Blueprint("expense", __name__)
 
@@ -46,10 +47,11 @@ def add_expense():
     db.session.add(expense)
     db.session.commit()
 
-return jsonify({
-    "success": True,
-    "data": {"message": "Expense added successfully"}
-}), 201
+return success_response(
+    {"message": "Expense added successfully"},
+    status_code=201
+)
+
 
 # ---------------- GET EXPENSES ----------------
 
